@@ -54,7 +54,7 @@ class Router
         require_once Application::$pathname . "/src/views/layout/main.php";
         return ob_get_clean();
     }
-   
+
     protected function renderOnlyView($view)
     {
         ob_start();
