@@ -1,16 +1,29 @@
 <?php
 
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../src/core/Application.php';
+
+use App\Controllers\AuthController;
+use App\Controllers\SiteController;
 use App\Core\Application;
-require_once __DIR__.'/../vendor/autoload.php';
-require_once __DIR__.'/../src/core/Application.php';
 
 $app = new Application(dirname(__DIR__));
 // echo "<pre>";
-// var_dump(dirname(__DIR__));
-// var_dump((__DIR__));
+// var_dump($router);
 // echo "</pre>";
-$app->router->get('/', 'home');
+$router = $app->router;
+$router->get('/', [SiteController::class, "home"]);
 
-$app->router->get('/contact', 'contact');
+$router->get('/contact', [SiteController::class, "contact"]);
+
+$router->post("/contact", [SiteController::class, "handleContact"]);
+
+$router->get('/login', [AuthController::class, "login"]);
+
+$router->post("/login", [AuthController::class, "login"]);
+
+$router->get('/register', [AuthController::class, "register"]);
+
+$router->post("/register", [AuthController::class, "register"]);
 
 $app->run();

@@ -19,6 +19,11 @@ class Router
         $this->routes['get'][$path] = $callback;
     }
 
+    public function post($path, $callback)
+    {
+        $this->routes['post'][$path] = $callback;
+    }
+
     public function resolve()
     {
         $path = $this->request->getPath();
@@ -27,37 +32,48 @@ class Router
         $callback = $this->routes[$method][$path] ?? false;
         if ($callback === false) {
             $this->response->setStatusCode(404);
-            $layoutContent = $this->renderLayout();
-            $viewContent = $this->renderOnlyView(null);
-
-            return str_replace("{{content}}", $viewContent, $layoutContent);
+            return $this->renderView("404");
         }
 
         if (is_string($callback)) {
             return $this->renderView($callback);
         }
 
-        return call_user_func($callback);
+        if (is_array($callback)) {
+            Application::$app->controller = new $callback[0]();
+            // Create an instance of the controller class
+            $callback[0] = Application::$app->controller;
+        }
+        return call_user_func($callback, $this->request);
     }
 
-    public function renderView($view)
+    public function renderView($view, $params = [])
     {
         $layoutContent = $this->renderLayout();
-        $viewContent = $this->renderOnlyView($view);
+        $viewContent = $this->renderOnlyView($view, $params);
 
         return str_replace("{{content}}", $viewContent, $layoutContent);
     }
 
     protected function renderLayout()
     {
+        $layout = Application::$app->controller->getLayout();
         ob_start();
-        require_once Application::$pathname . "/src/views/layout/main.php";
+        require_once Application::$pathname . "/src/views/layout/$layout.php";
         return ob_get_clean();
     }
 
-    protected function renderOnlyView($view)
+    protected function renderOnlyView($view, $params)
     {
         ob_start();
+        // $params = [
+        //     "name" => "ahmed sadek",
+        //      age=>26
+        // ];
+        foreach ($params as $key => $value) {
+            $$key = $value;
+        }
+        // echo $name, $age;
         $pagename = $view ?? '404';
         require_once Application::$pathname . "/src/views/$pagename.php";
         return ob_get_clean();
